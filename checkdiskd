@@ -1,0 +1,68 @@
+#!/bin/sh
+
+#
+# checkdiskd - a simple program to check the free space on disks.
+#
+#
+
+# First, let's set some default variables
+
+COMMUNITY=public	#our snmp community
+RECEIVER=127.0.0.1	#our snmp trap receiver
+OID=1.3.6.1.4.1.1999.2.1.1	#Internet.Experimental.1999
+AGENT=`hostname`	#Trap Agent
+SPECIFIC=1		#Specific Trap
+GENERIC=2		#Generic Trap
+CHECK_INTERVAL=600	#10 minutes
+DEFAULT_THRESHOLD=95	#95% usage
+CONFFILE="/etc/checkdiskd.conf"
+
+# Next, make sure that PATH contains snmptrap
+PATH=$PATH:/usr/local/bin
+export PATH
+
+if [ -f "$CONFFILE" ]
+then
+echo "Reading Configuration from $CONFFILE..."
+
+. "$CONFFILE"
+fi
+
+X='1'
+while  [ $X -eq '1' ]
+do
+echo "Checking disk usage..."
+DISKUSAGE=`df -k |grep \^/dev` 
+IFS='
+'
+
+for x in $DISKUSAGE
+do
+ IFS=''
+ mnt=`echo $x | awk '{print $6};'`
+ space=`echo $x |awk '{print $5};' |sed -e 's/%//'`
+ avail=`echo $x |awk '{print $4};'`
+ total=`echo $x |awk '{print $2};'`
+ THRESHOLD=$DEFAULT_THRESHOLD
+ 
+ if [ $space -gt $THRESHOLD ] 
+   then
+#
+# DO WE HAVE AN ERROR SITUATION?
+#	echo $mnt is low
+echo sending trap for $mnt...
+snmptrap -v 1 -c $COMMUNITY $RECEIVER $OID $AGENT $SPECIFIC $GENERIC '' \
+1 s "`hostname`:$mnt" 2 i $space 3 i $avail 4 i $total
+ fi 
+done
+# REREAD CONFIGURATION
+
+if [ -f "$CONFFILE" ]
+then
+echo "Reading Configuration from $CONFFILE..."
+
+. "$CONFFILE"
+fi
+
+sleep $CHECK_INTERVAL
+done

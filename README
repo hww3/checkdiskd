@@ -1,0 +1,29 @@
+This is the readme for checkdiskd. checkdiskd is a simple daemon written in bourne shell that will periodically check the capacity of your local filesystems. If the usage of any of these filesystems rises above a preconfigured threshold, an SNMP trap will be sent to a designated manager indicating the threshold has been crossed.
+
+To use checkdiskd, copy checkdiskd someplace convenient. Copy checkdiskd.conf to your /etc directory and modify it to contain the manager, trap information and threshold you wish to alarm on. The location of the configuration file can be changed by modifying the CONFFILE directive in checkdiskd. checkdiskd re-reads its configuration after each disk check.
+
+To start checkdiskd, simply run it from a command line like this (assuming you installed it in /usr/local/bin): 
+
+/usr/local/bin/checkdiskd >/dev/null &
+
+... or if you prefer to see what checkdiskd is doing:
+
+/usr/local/bin/checkdiskd &
+
+checkdiskd relies on the presence of a df command that accepts the -k argument (Solaris and GNU df support this option) as well as the snmptrap command supplied with the net-snmp package (see net-snmp.sourceforge.net for details).
+
+TODO
+
+- per filesystem thresholds
+- specify the filesystems to be checked
+- multiple trap receivers
+
+BUGS
+
+probably too many to mention
+
+AUTHOR
+
+Bill Welliver <bill.welliver@fairchildsemi.com>
+
+Please send any comments, suggestions, enhancements, bug fixes to me at the address above. This software is provided without warranty. I cannot be held responsible if it misbehaves. This software is free, and is worth every penny of its price.
